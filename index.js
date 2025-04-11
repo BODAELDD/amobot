@@ -11,10 +11,19 @@ import { downloadImage, analyzeImage } from './utils.js';
 dotenv.config();
 
 const app = express();
-const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
+app.use(express.json());
+
+const bot = new TelegramBot(process.env.BOT_TOKEN);
+bot.setWebHook(`${process.env.VERCEL_URL}/api/bot${process.env.BOT_TOKEN}`);
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
+
+// Webhook endpoint
+app.post(`/api/bot${process.env.BOT_TOKEN}`, (req, res) => {
+  bot.processUpdate(req.body);
+  res.sendStatus(200);
+});
 
 // Start command
 bot.onText(/\/start/, (msg) => {
@@ -76,4 +85,3 @@ bot.on('photo', async (msg) => {
 
 app.get('/', (req, res) => res.send('Bot is alive!'));
 app.listen(3000, () => console.log('Bot server running...'));
-
